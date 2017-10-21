@@ -3,8 +3,8 @@ import sys
 
 import requests
 from requests.auth import HTTPBasicAuth
-import configparser
 import codecs
+from backports import configparser
 
 authData = {}
 
@@ -17,12 +17,13 @@ class CxxRestApiError(Exception):
     def __str__(self):
         return self.value
 
-def loadConfigFile():
+def loadConfigFile(path_to_config_file):
     config = configparser.ConfigParser()
 
     homedir = os.path.expanduser("~")
-    config.read(os.path.join(homedir, '.cxxrest/config.ini'))
-    #print config.sections()
+    config.read(path_to_config_file)
+    print path_to_config_file
+    print config.sections()
 
     authData['authuser'] = config['CXXSETUP']['authuser']
     authData['password'] = config['CXXSETUP']['password']
@@ -92,6 +93,15 @@ def getSuccessfulImport(filepath):
 
     return response
 
+def getSuccessfulImportList():
+    importUrl = authData['serveraddr'] + '/centraxx/rest/import/successful'
+    restAuth = HTTPBasicAuth(authData['authuser'], authData['password'])
+
+    response = requests.get(importUrl, auth=restAuth, verify=False)
+    print(response)
+
+    return response
+
 def getErroneousImport(filepath):
     filename = os.path.basename(filepath.strip())
     importUrl = authData['serveraddr'] + '/centraxx/rest/import/error/' + filename
@@ -122,10 +132,10 @@ def deleteSuccessfulImport(filepath):
 
 
 # load the username, password, server address etc.
-loadConfigFile()
+loadConfigFile(sys.argv[2])
 filepath = sys.argv[1]
 filename = os.path.basename(filepath)
-
+"""
 resp = pushXML2CxxREST(filepath)
 
 # first, push XML file to REST as new resource
@@ -140,8 +150,12 @@ if resp.status_code != 202:
     raise CxxRestApiError('[CxxRest]: triggerAllCxxImports failed with ' + str(resp.status_code))
 else:
     print '[CxxRest]: import was triggered successfully (' + str(resp.status_code) + ')'
+"""
+resp = getSuccessfulImportList()
+print resp.status_code
+print resp.content
 
-resp = getSuccessfulImport(filepath)
+"""resp = getSuccessfulImport(filepath)
 
 if resp.status_code != 200:
     raise CxxRestApiError('[CxxRest]: getSuccessfulImport failed with ' + str(resp.status_code))
@@ -161,7 +175,7 @@ if resp.status_code != 200:
     raise CxxRestApiError('[CxxRest]: deleteSuccessfulImport failed with ' + str(resp.status_code))
 else:
     print '[CxxRest]:', filename, 'was deleted from successful imports (' + str(resp.status_code) + ')'
-
+"""
 #resp = getSuccessfulImport(filepath)
 
 # if resp.status_code != 200:

@@ -1,0 +1,27 @@
+Bootstrap:docker 
+From:centos:7
+
+%labels
+    CREATOR Sven Fillinger
+    CREATOR_MAIL sven.fillinger@qbic.uni-tuebingen.de
+
+    SOFTWARE test environment for centraxx interaction
+    LICENSE GPL2+
+
+%runscript
+    echo "Arguments received: $*"
+    exec python2.7 "$@"
+    
+%post
+    yum update -y
+    yum install -y epel-release
+    yum install -y python-pip
+    pip install --upgrade pip
+    pip install requests pyyaml
+    pip install -I pyxb==1.2.4
+    pip install configparser
+
+%test
+    python2 --version
+    pip -V	
+
